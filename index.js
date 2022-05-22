@@ -6,7 +6,7 @@ require('dotenv').config()
 const port = process.env.PORT || 5000;
 // Middle ware
 app.use(cors())
-// app.use(express.json)
+app.use(express.json())
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.re66n.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -17,6 +17,7 @@ async function run(){
     try{
         await client.connect();
         const productsCollection = client.db("computer-parts").collection("products");
+        const purshesCollection = client.db("computer-parts").collection("order");
         app.get("/products", async(req , res) =>{
             const result = await productsCollection.find().toArray()
             res.send(result)
@@ -26,6 +27,12 @@ async function run(){
           const query = { _id : ObjectId(id)}
           const result = await productsCollection.findOne(query)
           res.send(result)
+        })
+        app.post('/orders', async(req , res) =>{
+          const purshes = req.body;
+          const result = await purshesCollection.insertOne(purshes)
+          res.send(result)        
+
         })
     }finally{
 
