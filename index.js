@@ -17,7 +17,9 @@ async function run(){
     try{
         await client.connect();
         const productsCollection = client.db("computer-parts").collection("products");
-        const purshesCollection = client.db("computer-parts").collection("order");
+        const purshesCollection = client.db ("computer-parts").collection("order");
+        const reviewsCollection = client.db ("computer-parts").collection("review");
+        const userCollection = client.db ("computer-parts").collection("user");
         app.get("/products", async(req , res) =>{
             const result = await productsCollection.find().toArray()
             res.send(result)
@@ -29,10 +31,30 @@ async function run(){
           res.send(result)
         })
         app.post('/orders', async(req , res) =>{
-          const purshes = req.body;
+          const purshes = req.body;         
           const result = await purshesCollection.insertOne(purshes)
           res.send(result)        
 
+        })
+        app.post('/reviews', async(req , res) =>{
+          const review = req.body;
+          const result = await reviewsCollection.insertOne(review);
+          res.send(result)
+        })
+        app.get('/reviews' , async(req , res) =>{
+          const result = await reviewsCollection.find().toArray()
+          res.send(result)
+        })
+        app.put('/user/:email' , async(req , res) =>{
+          const email = req.params.email;
+          const filter= {email}
+          const option = { upsert : true }
+          const  user = req.body;
+          const updateDoc ={
+            $set :user
+          }
+          const result = await userCollection.updateOne(filter, updateDoc, option) 
+          res.send(result)
         })
     }finally{
 
