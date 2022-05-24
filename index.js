@@ -3,6 +3,7 @@ const app = express()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 var jwt = require('jsonwebtoken');
+const res = require('express/lib/response');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
 // Middle ware
@@ -40,15 +41,9 @@ async function run() {
       const result = await productsCollection.find().toArray()
       res.send(result)
     })
-    app.put("/products/:email", async(req , res) =>{
-      const email = req.params.email;
-      const filter = {email}
-      const option = { upsert : true}
+    app.post("/products", async(req , res) =>{
       const product = req.body;
-      const updateDoc = {
-        $set : product
-      };
-      const result = await productsCollection.insertOne(filter, updateDoc, option)
+      const result = await productsCollection.insertOne(product)
       res.send(result)
     })
     app.get('/products/:id', verifyJWT, async (req, res) => {
@@ -69,9 +64,8 @@ async function run() {
       const result = await reviewsCollection.insertOne(review);
       res.send(result)
     })
-    app.get('/reviews', verifyJWT, async (req, res) => {
-     
-      const result = await reviewsCollection.find().toArray()
+    app.get('/reviews', async (req, res) => {
+           const result = await reviewsCollection.find().toArray()
       res.send(result)
     })
     app.put('/user/:email', async (req, res) => {
@@ -98,7 +92,32 @@ async function run() {
       var token = jwt.sign({email}, process.env.ACCESS_SECRET_TOKEN);
       res.send({token , result})
     })
-
+    app.get('/token' , verifyJWT,  async(req , res) =>{
+      const result = await tokenCollection.find().toArray()
+      res.send(result)
+    })
+    app.get('/admin/:email', async(req , res) =>{
+      const email = req.params.email;
+      const user = await tokenCollection.findOne({email: email})
+      const isAdmin = user.role === "admin";
+      res.send(isAdmin)
+    })
+    app.put('/token/admin/:email', verifyJWT,  async (req, res) => {
+      const email = req.params.email;   
+      const requester = req.decoded.email;
+      const requesterAccount = await tokenCollection.findOne({email:requester})  ;
+      if(requesterAccount.role === 'admin'){
+        const filter = { email }    
+        const updateDoc = {
+          $set: {role : "admin"}      }
+        const result = await tokenCollection.updateOne(filter, updateDoc)
+        res.send(result)
+      }else{
+        res.status(403).send({message:"Forbidden Access"})
+      }
+     
+    }
+    )
   } finally {
 
   }
