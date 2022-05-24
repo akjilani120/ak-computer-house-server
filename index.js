@@ -14,22 +14,22 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-  function verifyJWT (req, res, next){
-    const authorizationHead = req.headers.authorization;
-    
-    if(!authorizationHead){
-      return res.status(401).send({message :"Unauthorization access"})
-    }
-    const token = authorizationHead.split(" ")[1]
-    jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, (err, decoded) => {
-      if(err){
-        return res.status(403).send({message : "Fobidden access"})
-      }
-      req.decoded = decoded;
-      next()
-    });
+function verifyJWT(req, res, next) {
+  const authorizationHead = req.headers.authorization;
+
+  if (!authorizationHead) {
+    return res.status(401).send({ message: "Unauthorization access" })
   }
-async function run() {  
+  const token = authorizationHead.split(" ")[1]
+  jwt.verify(token, process.env.ACCESS_SECRET_TOKEN, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "Fobidden access" })
+    }
+    req.decoded = decoded;
+    next()
+  });
+}
+async function run() {
   try {
     await client.connect();
     const productsCollection = client.db("computer-parts").collection("products");
@@ -37,11 +37,11 @@ async function run() {
     const reviewsCollection = client.db("computer-parts").collection("review");
     const userCollection = client.db("computer-parts").collection("user");
     const tokenCollection = client.db("computer-parts").collection("tokenEmail");
-    app.get("/products",  async (req, res) => {
+    app.get("/products", async (req, res) => {
       const result = await productsCollection.find().toArray()
       res.send(result)
     })
-    app.post("/products", async(req , res) =>{
+    app.post("/products", async (req, res) => {
       const product = req.body;
       const result = await productsCollection.insertOne(product)
       res.send(result)
@@ -52,26 +52,25 @@ async function run() {
       const result = await productsCollection.findOne(query)
       res.send(result)
     })
-    app.post('/orders', async (req, res) => {      
+    app.post('/orders', async (req, res) => {
       const purshes = req.body;
       const result = await purshesCollection.insertOne(purshes)
       res.send(result)
 
     })
-    app.get('/orders', async(req , res)=>{
-      const email = req.query.email
-      console.log(email)
-      const  query = { email }
+    app.get('/orders', async (req, res) => {
+      const email = req.query.email;      
+      const query = {email : email }
       const result = await purshesCollection.find(query).toArray()
       res.send(result)
-    } )
+    })
     app.post('/reviews', async (req, res) => {
       const review = req.body;
       const result = await reviewsCollection.insertOne(review);
       res.send(result)
     })
     app.get('/reviews', async (req, res) => {
-           const result = await reviewsCollection.find().toArray()
+      const result = await reviewsCollection.find().toArray()
       res.send(result)
     })
     app.put('/user/:email', async (req, res) => {
@@ -83,10 +82,10 @@ async function run() {
         $set: user
       }
       const result = await userCollection.updateOne(filter, updateDoc, option)
-     res.send(result)
+      res.send(result)
     })
     app.put('/token/:email', async (req, res) => {
-      const email = req.params.email;     
+      const email = req.params.email;
       const filter = { email }
       const option = { upsert: true }
       const user = req.body;
@@ -94,34 +93,35 @@ async function run() {
         $set: user
       }
       const result = await tokenCollection.updateOne(filter, updateDoc, option)
-     
-      var token = jwt.sign({email}, process.env.ACCESS_SECRET_TOKEN);
-      res.send({token , result})
+
+      var token = jwt.sign({ email }, process.env.ACCESS_SECRET_TOKEN);
+      res.send({ token, result })
     })
-    app.get('/token' , verifyJWT,  async(req , res) =>{
+    app.get('/token', verifyJWT, async (req, res) => {
       const result = await tokenCollection.find().toArray()
       res.send(result)
     })
-    app.get('/admin/:email', verifyJWT,  async(req , res) =>{
+    app.get('/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
-      const user = await tokenCollection.findOne({email: email})
+      const user = await tokenCollection.findOne({ email: email })
       const isAdmin = user.role === "admin";
       res.send(isAdmin)
     })
-    app.put('/token/admin/:email', verifyJWT,  async (req, res) => {
-      const email = req.params.email;   
+    app.put('/token/admin/:email', verifyJWT, async (req, res) => {
+      const email = req.params.email;
       const requester = req.decoded.email;
-      const requesterAccount = await tokenCollection.findOne({email:requester})  ;
-      if(requesterAccount.role === 'admin'){
-        const filter = { email }    
+      const requesterAccount = await tokenCollection.findOne({ email: requester });
+      if (requesterAccount.role === 'admin') {
+        const filter = { email }
         const updateDoc = {
-          $set: {role : "admin"}      }
+          $set: { role: "admin" }
+        }
         const result = await tokenCollection.updateOne(filter, updateDoc)
         res.send(result)
-      }else{
-        res.status(403).send({message:"Forbidden Access"})
+      } else {
+        res.status(403).send({ message: "Forbidden Access" })
       }
-     
+
     }
     )
   } finally {
