@@ -58,8 +58,14 @@ async function run() {
       res.send(result)
 
     })
+    app.get('/orders', async(req , res)=>{
+      const email = req.query.email
+      console.log(email)
+      const  query = { email }
+      const result = await purshesCollection.find(query).toArray()
+      res.send(result)
+    } )
     app.post('/reviews', async (req, res) => {
-
       const review = req.body;
       const result = await reviewsCollection.insertOne(review);
       res.send(result)
@@ -96,7 +102,7 @@ async function run() {
       const result = await tokenCollection.find().toArray()
       res.send(result)
     })
-    app.get('/admin/:email', async(req , res) =>{
+    app.get('/admin/:email', verifyJWT,  async(req , res) =>{
       const email = req.params.email;
       const user = await tokenCollection.findOne({email: email})
       const isAdmin = user.role === "admin";
