@@ -46,6 +46,12 @@ async function run() {
       const result = await productsCollection.insertOne(product)
       res.send(result)
     })
+    app.delete('/products/:id' , async(req , res) =>{
+      const id = req.params.id
+      const query ={_id : ObjectId(id)}
+      const result = await productsCollection.deleteOne(query)
+      res.send(result)
+    })
     app.get('/products/:id', verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) }
@@ -58,11 +64,16 @@ async function run() {
       res.send(result)
 
     })
-    app.get('/orders', async (req, res) => {
-      const email = req.query.email;      
-      const query = {email : email }
-      const result = await purshesCollection.find(query).toArray()
-      res.send(result)
+    app.get('/orders' , verifyJWT,  async(req , res) =>{
+       const email = req.query.email;
+       const query = {userEmail : email}
+       console.log(query)
+       const cursor = purshesCollection.find(query)
+       console.log(cursor)
+       const result = await cursor.toArray()
+       
+       console.log(result)
+       res.send(result)
     })
     app.post('/reviews', async (req, res) => {
       const review = req.body;
