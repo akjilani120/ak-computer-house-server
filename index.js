@@ -66,15 +66,18 @@ async function run() {
     })
     app.get('/orders' , verifyJWT,  async(req , res) =>{
        const email = req.query.email;
-       const query = {userEmail : email}
-       console.log(query)
-       const cursor = purshesCollection.find(query)
-       console.log(cursor)
-       const result = await cursor.toArray()
+       const query = {userEmail : email}      
+       const cursor = purshesCollection.find(query)     
+       const result = await cursor.toArray()      
        
-       console.log(result)
        res.send(result)
     })
+     app.get("/orders/:id" , async(req , res) =>{
+       const id = req.params.id
+       const query = {_id : ObjectId(id)}
+       const result = await purshesCollection.findOne(query)
+       res.send(result)
+     })
     app.post('/reviews', async (req, res) => {
       const review = req.body;
       const result = await reviewsCollection.insertOne(review);
