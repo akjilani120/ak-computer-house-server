@@ -40,6 +40,7 @@ async function run() {
     const reviewsCollection = client.db("computer-parts").collection("review");
     const userCollection = client.db("computer-parts").collection("user");
     const tokenCollection = client.db("computer-parts").collection("tokenEmail");
+    const paymentCollection = client.db("computer-parts").collection("payment");
     app.get("/products", async (req, res) => {
       const result = await productsCollection.find().toArray()
       res.send(result)
@@ -75,6 +76,20 @@ async function run() {
        
        res.send(result)
     })
+     app.put("/orders/:id", verifyJWT , async(req , res) =>{
+       const id = req.params.id
+       const payment = req.body
+       const filter = {_id : ObjectId(id)}
+       const updateDoc = {
+         $set: {
+           paid : true,
+           transactionId: payment.transactionId
+         }
+       }
+       const result = await paymentCollection.insertOne(payment)
+       const updateOrders = await purshesCollection.updateOne(filter , updateDoc)
+       res.send(updateDoc)
+     })
      app.get("/orders/:id", verifyJWT , async(req , res) =>{
        const id = req.params.id
        const query = {_id : ObjectId(id)}
