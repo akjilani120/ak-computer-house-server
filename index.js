@@ -45,7 +45,7 @@ async function run() {
       const result = await productsCollection.find().toArray()
       res.send(result)
     })
-    app.get("/orders", async (req, res) => {
+    app.get("/orders", verifyJWT,  async (req, res) => {
       const result = await purshesCollection.find().toArray()
       res.send(result)
     })
@@ -54,6 +54,7 @@ async function run() {
       const result = await productsCollection.insertOne(product)
       res.send(result)
     })
+   
     app.delete('/products/:id' , async(req , res) =>{
       const id = req.params.id
       const query ={_id : ObjectId(id)}
@@ -82,8 +83,7 @@ async function run() {
     })
      app.put("/orders/:id", verifyJWT , async(req , res) =>{
        const id = req.params.id
-       const payment = req.body
-       
+       const payment = req.body       
        const filter = {_id : ObjectId(id)}
        const updateDoc = {
          $set: {
