@@ -45,6 +45,10 @@ async function run() {
       const result = await productsCollection.find().toArray()
       res.send(result)
     })
+    app.get("/orders", async (req, res) => {
+      const result = await purshesCollection.find().toArray()
+      res.send(result)
+    })
     app.post("/products", async (req, res) => {
       const product = req.body;
       const result = await productsCollection.insertOne(product)
@@ -79,13 +83,15 @@ async function run() {
      app.put("/orders/:id", verifyJWT , async(req , res) =>{
        const id = req.params.id
        const payment = req.body
+       
        const filter = {_id : ObjectId(id)}
        const updateDoc = {
          $set: {
            paid : true,
-           transactionId: payment.transactionId
+           transctionId: payment.transctionId
          }
        }
+      
        const result = await paymentCollection.insertOne(payment)
        const updateOrders = await purshesCollection.updateOne(filter , updateDoc)
        res.send(updateDoc)
