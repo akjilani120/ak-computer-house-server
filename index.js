@@ -45,10 +45,7 @@ async function run() {
       const result = await productsCollection.find().toArray()
       res.send(result)
     })
-    app.get("/orders", verifyJWT,  async (req, res) => {
-      const result = await purshesCollection.find().toArray()
-      res.send(result)
-    })
+    
     app.post("/products", async (req, res) => {
       const product = req.body;
       const result = await productsCollection.insertOne(product)
@@ -81,6 +78,10 @@ async function run() {
        
        res.send(result)
     })
+    app.get("/purshes",   async (req, res) => {
+      const result = await purshesCollection.find().toArray()
+      res.send(result)
+    })
      app.put("/orders/:id", verifyJWT , async(req , res) =>{
        const id = req.params.id
        const payment = req.body       
@@ -112,8 +113,7 @@ async function run() {
       res.send(result)
     })
     app.post("/create-payment-intent" , verifyJWT , async(req ,  res) =>{
-      const service = req.body;
-      console.log(service)
+      const service = req.body;   
       const price = service.price;
       const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
