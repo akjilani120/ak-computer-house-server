@@ -187,5 +187,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`Ak computer parts house ${port}`)
+  console.log(`Ak computer parts house shop ${port}`)
 })
